@@ -5,12 +5,12 @@ Import-Module .\video-tools.psm1 -Scope Local
 Set-Variable DebugPreference -Value "Continue"
 
 Get-ChildItem . -Recurse -File
-| Select-Object -Property *,(
+| Select-Object -Property *, (
     @{
-        Name = 'YouTubeId'
+        Name       = 'YouTubeId'
         Expression = { return Get-YouTubeId($_) } 
-    }),(@{
-        Name="FileExtension"
+    }), (@{
+        Name       = "FileExtension"
         Expression = { return Get-FileExtension($_) }
     })
-| Format-Table -GroupBy YouTubeId -Property Extension,FullName
+| Format-Table -GroupBy YouTubeId -Property Extension, FullName
