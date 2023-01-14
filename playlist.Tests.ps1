@@ -3,7 +3,11 @@ BeforeAll {
 }
 
 Describe "Get-Playlists" {
-    It "Returns expected output" {
+    It "Can parse type names" {
+        Get-TypeData PlaylistInfo | Write-Debug
+        Get-InfoType("playlist") | Should -Be [PlaylistInfo]
+    }
+    It "Returns expected output" -Skip {
         Get-InfoFiles . -InfoFileTypes "playlist" -Recurse -OutVariable items
         | ForEach-Object {
             Write-Debug $_

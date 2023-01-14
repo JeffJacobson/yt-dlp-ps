@@ -1,13 +1,14 @@
 [CmdletBinding()]
 param (
     [Parameter(
+        Mandatory,
         Position = 0,
         ValueFromPipeline,
         ValueFromPipelineByPropertyName
     )]
     [ValidateNotNullOrEmpty()]
     [uri[]]
-    $uris = 'https://www.youtube.com/feeds/videos.xml?channel_id=UCioQmyB0WnsT9jwMczLpI7g'
+    $uris
 )
 
 ForEach-Object -InputObject $uris -Parallel {
