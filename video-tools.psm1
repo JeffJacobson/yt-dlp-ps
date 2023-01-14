@@ -1,5 +1,9 @@
 using namespace System.IO
 
+<#
+Represents a partially downloaded video found in
+the file system.
+#>
 class VideoPart {
     [regex]
     static $VideoPartRegex = '(?inx)
@@ -88,7 +92,7 @@ class VideoPart {
     PS C:\> Get-PartialDownloadFiles | Select-Object -ExpandProperty YouTubeUri | Select-Object -ExpandProperty OriginalString
     Get all of the URLs for partially downloaded files.
 .EXAMPLE
-    PS C:\> .\Get-PartialDownloadFiles.ps1 | Format-List
+    Get-PartialDownloadFiles | Format-List
 
     VideoTitle : The Hidden Life of Fred Gwynne Herman Munster.mp4.part
     File       : C:\Users\JoeUser\Downloaded Videos\The Hidden Life of Fred Gwynne Herman Munster.mp4.part
@@ -139,6 +143,36 @@ function Get-PartialDownloadFiles {
     }
 }
 
+<#
+.SYNOPSIS
+    Checks folders recursively and resumes any partial 
+    downloads that are found.
+#>
+function Resume-PartialDownloads {
+    # Find all the .part files and the folders they reside in.
+    Get-PartialDownloadFiles 
+    | Select-Object -Property YouTubeUrl, @{
+        Name       = 'Folder'
+        Expression = {
+            $_.File.Directory
+        }
+    } -Unique
+    # Group the objects by folder
+    | Group-Object 'Folder'
+    # Run yt-dlp for the YouTube URLs corresponding to the .part
+    # files in the folder.
+    | ForEach-Object -Parallel {
+        $directory = $_.Name
+        Write-Host "Current directory is $directory"
+        $urls = $_.Group | Select-Object -ExpandProperty YouTubeUrl
+        # Change to that directory
+        Set-Location $directory
+        # Start yt-dlp for those URLs.
+        Start-Process 'yt-dlp' $urls -Wait -NoNewWindow
+    }
+}
+
+
 New-Variable videoExtensions @(
     '.m4v',
     '.mkv',
@@ -157,17 +191,18 @@ function Get-YouTubeId {
         [System.IO.FileInfo]
         $InputFile,
 
-
+        [Parameter()]
         [ValidateNotNull()]
         [regex]
         $YoutubeIdRe = '(?<=\[)[^\[\]]+(?=\])',
 
         # Known strings that would falsely be detected as YouTube IDs.
+        [Parameter()]
+        [AllowNull()]
+        [AllowEmptyCollection()]
         $InvalidIds = @('hokuto-no-ken')
     )
 
-
-            
     process {
         Write-Debug "YoutubeIdRe = $YoutubeIdRe"
         if (-not $YoutubeIdRe) {
@@ -181,6 +216,7 @@ function Get-YouTubeId {
         return $null
     }
 }
+
 
 function ConvertTo-FileHashes {
     param (
