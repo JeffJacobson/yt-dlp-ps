@@ -80,3 +80,10 @@ $RECYCLE.BIN/
 *.7z
 *.csv
 *.webm
+*.png
+*.jpeg
+*.htm
+*.mpeg
+*.opus
+*.js
+*.css
